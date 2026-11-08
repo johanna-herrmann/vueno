@@ -1,6 +1,7 @@
 .idea/
 target/
 data/
+src/main/resources/static
 *.iml
 *.log
 *.log.*.gz
