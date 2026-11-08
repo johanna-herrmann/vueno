@@ -4,7 +4,7 @@ import { Game } from './model';
 
 export class GameStore {
   readonly games = new Map<string, Game>();
-  constructor(private readonly directory = path.resolve(process.env.GAMES_PATH ?? path.join(process.env.DATA_PATH ?? path.resolve(__dirname, '../../data'), 'games'))) {
+  constructor(private readonly directory = path.resolve(process.env.VUENO_GAMES_PATH ?? path.join(process.env.VUENO_DATA_PATH ?? path.resolve(__dirname, '../../data'), 'games'))) {
     fs.mkdirSync(directory, { recursive: true });
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
       if (!entry.isFile()) continue;

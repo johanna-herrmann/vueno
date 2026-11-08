@@ -126,17 +126,17 @@ export function createApp(store = new GameStore()): express.Express {
   app.post('/api/game/create/:token?', (req,res,next) => {
     try {
       for (const [uuid, existing] of store.games) if (Date.now() - existing.lastAction > 8 * 60 * 60 * 1000) store.delete(uuid);
-      const enabled=process.env.FEATURE_TOKENIZED_GAME_CREATE==='on';
+      const enabled=process.env.VUENO_FEATURE_TOKENIZED_GAME_CREATE==='on';
       if(enabled) {
         const token=String(req.params.token ?? ''); const m=/^([a-zA-Z0-9_-]{11})\.([a-zA-Z0-9_-]{11})$/.exec(token);
-        const dir=path.resolve(process.env.TOKENS_DIRECTORY ?? path.join(process.env.DATA_PATH ?? path.resolve(__dirname, '../../data'), 'tokens'));
+        const dir=path.resolve(process.env.VUENO_TOKENS_DIRECTORY ?? path.join(process.env.VUENO_DATA_PATH ?? path.resolve(__dirname, '../../data'), 'tokens'));
         const hash=m?(()=>{try{return fs.readFileSync(path.join(dir,m[1]),'utf8')}catch{return ''}})():'';
         if(!m || !hash || !bcrypt.compareSync(m[2],hash)) throw new ApiError(401,'Invalid Token provided.','InvalidTokenException');
       }
       const g=newGame(); store.games.set(g.uuid,g); save(g); res.status(201).json({success:true,message:'success',gameUuid:g.uuid});
     } catch(e) { next(e); }
   });
-  app.get('/api/game/tokenized-game-create-enabled',(_req,res)=>res.json({success:true,message:process.env.FEATURE_TOKENIZED_GAME_CREATE==='on'?'on':'off'}));
+  app.get('/api/game/tokenized-game-create-enabled',(_req,res)=>res.json({success:true,message:process.env.VUENO_FEATURE_TOKENIZED_GAME_CREATE==='on'?'on':'off'}));
   app.post('/api/game/start/:gameUuid',(req,res,next)=>{ try {
     const g=game(req.params.gameUuid); requireLifecycle(g,'SET_PLAYERS');
     if(g.players.length<2) throw new ApiError(400,'There are not enough players in the game.','IllegalStateException');

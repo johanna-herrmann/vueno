@@ -42,22 +42,23 @@ Open `http://localhost:8080`. The Vite development server proxies REST and WebSo
 
 A TypeScript/Express backend is available in `backend`. Start it with `cd backend && npm install && npm run dev`; it uses port 9001 by default, so only one of the Java and Node backends can run on that port at a time. Its saved games use JSON under `./data/games`; existing Java-serialized saves are not compatible. See [backend/README.md](backend/README.md) for configuration, build, and Jest commands.
 
-## Application Arguments
-* `--server.port`: Sets the port the applications listens to (default: 9001)
-* `--server.address`: Sets the ip addresses the application will be reachable from (default: 0.0.0.0 meaning 'all')
-* `--data.path`: Sets the path to the data directory (default: ./data)
-* `--feature.tokenized_game_create`:
-  Enables or disables the feature [tokenized-game-create](#tokenized-game-create) (default: off)
+### Backend environment variables
+* `VUENO_PORT`: Backend port (default: `9001`)
+* `VUENO_HOST`: Listen address (default: `0.0.0.0`)
+* `VUENO_DATA_PATH`: Data directory (default: `./data` in the repository root)
+* `VUENO_GAMES_PATH`: Override the games directory (default: `${VUENO_DATA_PATH}/games`)
+* `VUENO_TOKENS_DIRECTORY`: Override the token directory (default: `${VUENO_DATA_PATH}/tokens`)
+* `VUENO_FEATURE_TOKENIZED_GAME_CREATE`: Enables [tokenized-game-create](#tokenized-game-create) when set to `on` (default: `off`)
 
-## tokenized-game-create
+### tokenized-game-create
 With this feature enabled, a valid token must be provided to create a new game.
 
-### Enable / Disable
-* Disable: java -jar vueno-xx.jar --feature.tokenized_game_create=off
-* Enable: java -jar vueno-xx.jar --feature.tokenized_game_create=on
+#### Enable / Disable
+* Disable: `VUENO_FEATURE_TOKENIZED_GAME_CREATE=off npm run dev`
+* Enable: `VUENO_FEATURE_TOKENIZED_GAME_CREATE=on npm run dev`
 * Default: Disabled
 
-### Token
+#### Token
 * A valid token must be provided to create a game, via URL.
   * /api/game/create/{token}
 * Every authorized person should have their own token
@@ -66,7 +67,7 @@ With this feature enabled, a valid token must be provided to create a new game.
 * Creation and storing of tokens on backend-server
   * Creation of tokens and storing of hashes happen externally\
     (not concern of this application)
-  * For every token, a bcrypt-hash of the second token part is stored under `${data.path}/tokens`,
+  * For every token, a bcrypt-hash of the second token part is stored under `${VUENO_DATA_PATH}/tokens`,
     while the filename is the first token part.
     * example: Hash of j8yZ15Ji210 is stored in file named Dsnmn7Twqd1
 * Token validation:
