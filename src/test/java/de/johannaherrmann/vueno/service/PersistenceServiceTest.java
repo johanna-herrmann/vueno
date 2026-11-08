@@ -78,8 +78,8 @@ public class PersistenceServiceTest {
     public void shouldLoadGamesCorrectly () throws Exception {
         Game game1 = TestHelper.prepareAndStartGame(gameService, playerService);
         Game game2 = TestHelper.prepareAndStartGame(gameService, playerService);
-        List<Game> sorted = new ArrayList<>(){{ add(game1); add(game2); }};
-        sorted.sort(Comparator.comparing(Game::getUuid));
+        List<Game> sortedExpected = new ArrayList<>(){{ add(game1); add(game2); }};
+        sortedExpected.sort(Comparator.comparing(Game::getUuid));
         game1.setLastAction(50);
         serializeGame(game1);
         serializeGame(game2);
@@ -95,8 +95,10 @@ public class PersistenceServiceTest {
 
         assertThat(exception).isNull();
         assertThat(loadedGames).isNotNull().hasSize(2);
-        assertGamesEqual(loadedGames.get(0), sorted.get(0));
-        assertGamesEqual(loadedGames.get(1), sorted.get(1));
+        List<Game> sortedActual = new ArrayList<>(loadedGames);
+        sortedActual.sort(Comparator.comparing(Game::getUuid));
+        assertGamesEqual(sortedActual.get(0), sortedExpected.get(0));
+        assertGamesEqual(sortedActual.get(1), sortedExpected.get(1));
     }
 
     private void assertGamesEqual (Game game1, Game game2) {
