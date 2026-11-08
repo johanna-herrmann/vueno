@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:8080>. Vite forwards `/api` requests and WebSocket traffic to the Spring Boot backend at `http://localhost:9001`.
+Open <http://localhost:8080>. Vite forwards `/api` requests and WebSocket traffic to the backend at `http://localhost:9001` (Java or Node).
 
 ## Build and tests
 
@@ -20,4 +20,4 @@ npm run typecheck
 npm run build
 ```
 
-`npm run build` creates a production bundle with Vite and copies it into `../src/main/resources/static`, where Spring Boot serves it. Build the frontend before packaging the backend.
+`npm run build` creates a production bundle with Vite and copies it into `../backend/static`, where the Express backend serves it. Build the frontend before starting the backend in production.

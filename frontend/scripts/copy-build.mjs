@@ -4,7 +4,7 @@ import path from 'node:path'
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const builtDir = path.join(projectDir, 'dist')
-const staticDir = path.resolve(projectDir, '../src/main/resources/static')
+const staticDir = path.resolve(projectDir, '../backend/static')
 
 await rm(staticDir, { recursive: true, force: true })
 await mkdir(staticDir, { recursive: true })

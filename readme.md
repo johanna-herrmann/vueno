@@ -36,7 +36,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:8080`. The Vite development server proxies REST and WebSocket requests under `/api` to the backend. Run `npm test` (Vitest) for frontend unit tests. `npm run build` builds the frontend and copies it into `src/main/resources/static`; run this before packaging the Spring Boot application.
+Open `http://localhost:8080`. The Vite development server proxies REST and WebSocket requests under `/api` to the backend. Run `npm test` (Vitest) for frontend unit tests. `npm run build` builds the frontend and copies it into `backend/static`, which the Express backend serves.
 
 ## Node backend (replacement implementation)
 

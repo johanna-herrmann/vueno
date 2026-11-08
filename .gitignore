@@ -2,6 +2,7 @@
 target/
 data/
 src/main/resources/static
+backend/static
 *.iml
 *.log
 *.log.*.gz

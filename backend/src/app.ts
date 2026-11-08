@@ -196,7 +196,7 @@ export function createApp(store = new GameStore()): express.Express {
   app.post('/api/player/revoke-request-stop-party/:gameUuid/:playerUuid',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);requireLifecycle(g,'RUNNING');if(p.stopPartyRequested){p.stopPartyRequested=false;g.stopPartyRequested--;setPushIndex(g,p);}broadcast('revoke-request-stop-party',g);save(g);res.json(ok());}catch(e){next(e);}});
   app.post('/api/switch/finished/:gameUuid/:playerUuid',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);push('switch-finished',g,String(g.players.indexOf(p)));res.json(ok());}catch(e){next(e);}});
   app.post('/api/switch/in/:pushUuid/:gameUuid/:playerUuid/:sayUno/:readMessages',(req,res)=>{publishSwitch(req.params.pushUuid,`switch-in:${req.params.gameUuid}:${req.params.playerUuid}:${req.params.sayUno}:${req.params.readMessages}`);res.json(ok());});
-  const staticDirectory = path.resolve(__dirname, '../../src/main/resources/static');
+  const staticDirectory = path.resolve(__dirname, '../static');
   app.use(express.static(staticDirectory));
   app.get('*',(req,res,next)=>{
     if(req.path.startsWith('/api/')) { next(); return; }
