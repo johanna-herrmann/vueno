@@ -26,6 +26,18 @@ This is a webapp, powered by SpringBoot and VueJS.
 * run following command in terminal: java -jar vueno-xx.jar\
   (xx is the version)
 
+## Frontend development
+
+The Vue 3 and TypeScript project lives in `frontend`. Start the backend on port 9001, then run:
+
+```sh
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:8080`. The Vite development server proxies REST and WebSocket requests under `/api` to the backend. Run `npm test` (Vitest) for frontend unit tests. `npm run build` builds the frontend and copies it into `src/main/resources/static`; run this before packaging the Spring Boot application.
+
 ## Application Arguments
 * `--server.port`: Sets the port the applications listens to (default: 9001)
 * `--server.address`: Sets the ip addresses the application will be reachable from (default: 0.0.0.0 meaning 'all')

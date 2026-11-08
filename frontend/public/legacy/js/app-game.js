@@ -120,11 +120,7 @@ function handleToken(){
 }
 
 function isTokenPatternValid(token){
-    if(token === null){
-        return false;
-    }
-    const tokenRegex = "^([a-zA-Z0-9_-]{11})\\.([a-zA-Z0-9_-]{11})$";
-    return new RegExp(tokenRegex).test(token);
+    return window.isValidToken(token);
 }
 
 function setRequestStopParty(){
@@ -197,7 +193,7 @@ function init(){
     return true;
 }
 
-window.addEventListener("load", function() {
+function startVueno() {
     loadTheme();
     if(handleSwitchDevice()){
         return;
@@ -209,7 +205,8 @@ window.addEventListener("load", function() {
     if(init()){
         document.getElementById('vueno').style.display = 'block';
     }
-});
+}
+window.startVueno = startVueno;
 
 document.addEventListener('click', function(e) {
     if(document.activeElement.toString() !== '[object HTMLInputElement]' && document.activeElement.toString() !== '[object HTMLTextAreaElement]'){

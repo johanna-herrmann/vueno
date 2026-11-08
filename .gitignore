@@ -5,3 +5,7 @@ src/main/resources/static
 *.iml
 *.log
 *.log.*.gz
+
+node_modules/
+frontend/dist/
+frontend/coverage/

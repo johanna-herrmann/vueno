@@ -52,23 +52,20 @@ function handleRequestError(response) {
     }
 }
 
-function doGetRequest(path, callback){
+function doRequest(method, path, body, callback){
     startProcessingAnimation();
-    app.$http.get(config.apiBase+path).then(function (response) {
-        handleRequestSuccess(response, callback);
-    }, handleRequestError);
+    const options = { method: method, headers: { 'Content-Type': 'application/json' } };
+    if(body !== undefined){ options.body = body; }
+    fetch(config.apiBase+path, options).then(async function (result) {
+        const payload = await result.json().catch(function () { return {}; });
+        const response = { url: result.url, status: result.status, data: payload };
+        if(result.ok){ handleRequestSuccess(response, callback); }
+        else { handleRequestError(response); }
+    }).catch(function (error) {
+        handleRequestError({ url: config.apiBase+path, status: 0, data: { error: error } });
+    });
 }
 
-function doPostRequest(path, data, callback){
-    startProcessingAnimation();
-    app.$http.post(config.apiBase+path, JSON.stringify(data)).then(function (response) {
-        handleRequestSuccess(response, callback);
-    }, handleRequestError);
-}
-
-function doDeleteRequest(path, callback){
-    startProcessingAnimation();
-    app.$http.delete(config.apiBase+path).then(function (response) {
-        handleRequestSuccess(response, callback);
-    }, handleRequestError);
-}
+function doGetRequest(path, callback){ doRequest('GET', path, undefined, callback); }
+function doPostRequest(path, data, callback){ doRequest('POST', path, JSON.stringify(data), callback); }
+function doDeleteRequest(path, callback){ doRequest('DELETE', path, undefined, callback); }

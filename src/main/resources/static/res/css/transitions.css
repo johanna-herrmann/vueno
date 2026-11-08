@@ -11,13 +11,13 @@
 }
 
 #current-players .player.players-leave-to, #current-players .player.players-leave-to button,
-#current-players .player.players-enter, #current-players .player.players-enter button {
+#current-players .player.players-enter-from, #current-players .player.players-enter-from button {
     font-size: 0;
     padding: 0;
 }
 
 #current-players .player.players-leave-to,
-#current-players .player.players-enter{
+#current-players .player.players-enter-from{
     margin-bottom: 0;
     opacity: 0;
 }

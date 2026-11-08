@@ -1,5 +1,3 @@
-Vue.config.devtools = config.vueDevToolsEnabled;
-
 const gameState = {
     success: true,
     message: 'success',
@@ -121,12 +119,7 @@ const computed = {
     topCardInSingleList: function (){return topCardInSingleList()}
 }
 
-app = new Vue({
-    el: '#app',
-    data: data,
-    methods: methods,
-    computed: computed
-});
+window.VuenoRootOptions = { data: function () { return data; }, methods: methods, computed: computed };
 
 function hasTouch() {
     return 'ontouchstart' in document.documentElement
