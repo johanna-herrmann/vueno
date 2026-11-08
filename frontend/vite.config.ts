@@ -9,8 +9,9 @@ export default defineConfig({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'http://localhost:9001',
-        changeOrigin: true,
+        target: 'http://127.0.0.1:9001',
+        // Preserve the browser Origin/Host pair so Spring's same-origin SockJS check accepts it.
+        changeOrigin: false,
         ws: true,
       },
     },
