@@ -1,6 +1,6 @@
 # vueno frontend
 
-Vue 3, TypeScript and Vite project. The Vue views are split into single-file components under `src/components`; the existing game actions are temporarily exposed through the isolated `public/legacy` adapter while the game actions are incrementally migrated to typed modules.
+Vue 3, TypeScript and Vite project. The Vue views are split into single-file components under `src/components`; the former global scripts are now bundled by Vite from `src/legacy/runtime.ts`; QR scanning is a TypeScript module in `src/legacy/qrScanner.ts`. The runtime keeps the existing shared game state intact while it is split into fully typed modules. Third-party browser libraries remain under `public/vendor`.
 
 ## Development
 
