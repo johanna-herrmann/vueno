@@ -95,7 +95,7 @@ function handleTokenLink(){
 
 function setHandleTokenAndEnableView(data){
     setHandleToken(data)
-    document.getElementById('javaUno').style.display = 'block';
+    document.getElementById('vueno').style.display = 'block';
 }
 
 function setHandleToken(data){
@@ -207,7 +207,7 @@ window.addEventListener("load", function() {
     }
     handleInvitation();
     if(init()){
-        document.getElementById('javaUno').style.display = 'block';
+        document.getElementById('vueno').style.display = 'block';
     }
 });
 

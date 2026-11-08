@@ -209,7 +209,7 @@ img {
     filter: brightness(var(--brightness-filter));
 }
 
-#javaUno {
+#vueno {
     display: none;
     padding: 30px 10px 20px 10px;
 }
@@ -390,17 +390,17 @@ header a:active {
     background: var(--link-button-active-bgcolor);
 }
 
-#javaUno a:link, #javaUno a:visited {
+#vueno a:link, #vueno a:visited {
     color: var(--link-color);
     text-decoration: none;
 }
 
-#javaUno a:focus, #javaUno a:hover {
+#vueno a:focus, #vueno a:hover {
     color: var(--link-hover-color);
     text-decoration: none;
 }
 
-#javaUno a:active {
+#vueno a:active {
     color: var(--link-active-color);
     text-decoration: none;
 }

@@ -1,4 +1,4 @@
-# JavaUno - Webapp
+# vueno - Webapp
 
 The card game as online game (Webapp)
 
@@ -22,8 +22,8 @@ This is a webapp, powered by SpringBoot and VueJS.
     
 ## How to run
 * Pre-requisite: Java (17+, tested with Java 17)
-* build it with 'mvn clean package' (you will get a javauno-xx.jar file)
-* run following command in terminal: java -jar javauno-xx.jar\
+* build it with 'mvn clean package' (you will get a vueno-xx.jar file)
+* run following command in terminal: java -jar vueno-xx.jar\
   (xx is the version)
 
 ## Application Arguments
@@ -37,8 +37,8 @@ This is a webapp, powered by SpringBoot and VueJS.
 With this feature enabled, a valid token must be provided to create a new game.
 
 ### Enable / Disable
-* Disable: java -jar javauno-xx.jar --feature.tokenized_game_create=off
-* Enable: java -jar javauno-xx.jar --feature.tokenized_game_create=on
+* Disable: java -jar vueno-xx.jar --feature.tokenized_game_create=off
+* Enable: java -jar vueno-xx.jar --feature.tokenized_game_create=on
 * Default: Disabled
 
 ### Token

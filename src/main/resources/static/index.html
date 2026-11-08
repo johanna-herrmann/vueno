@@ -1,10 +1,10 @@
 <!Doctype html>
 <html lang="de" xmlns:v-bind="http://www.w3.org/1999/xhtml">
 <head>
-    <title>JavaUno Online</title>
+    <title>vueno Online</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta property="og:title" content="JavaUno Online">
+    <meta property="og:title" content="vueno Online">
     <meta property="og:description" content="Spiele das beliebte Kartenspiel mit Freunden oder auch alleine am PC oder Handy.">
     <meta property="og:image" content="res/img/og.png">
     <meta property="og:image:secure_url" content="res/img/og.png">
@@ -41,9 +41,9 @@
             <a v-bind:class="currentView === 'chat' ? 'chatToggle toggle on' : 'chatToggle toggle'" href="#" @click="hideChat()" v-if="gameLoadedWithPlayer"><span class="fas fa-arrow-left"></span></a>
             <div id="newMessages" v-if="(currentView === 'running' || currentView === 'set_players') && readMessages < gameState.game.messages.length"></div>
         </header>
-        <noscript>JavaUno als Browsergame basiert auf JavaScript. Bitte aktiviere JavaScript in deinen Browsereinstellungen.</noscript>
+        <noscript>vueno als Browsergame basiert auf JavaScript. Bitte aktiviere JavaScript in deinen Browsereinstellungen.</noscript>
 
-        <div id="javaUno">
+        <div id="vueno">
 
             <!-- Start/Join view - From here a game can be created or joined -->
             <div id="view-start" v-if="currentView === 'start' || currentView === 'join'" class="view">

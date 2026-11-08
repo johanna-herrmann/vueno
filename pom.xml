@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>de.johannaherrmann</groupId>
-    <artifactId>javauno</artifactId>
+    <artifactId>vueno</artifactId>
     <version>3.0.0</version>
-    <name>JavaUno</name>
+    <name>vueno</name>
     <description>The Card Game Uno as a webapp</description>
 
     <properties>

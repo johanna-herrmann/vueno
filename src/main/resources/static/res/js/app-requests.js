@@ -20,7 +20,7 @@ function handleRequestSuccess(response, callback) {
 function handleRequestError(response) {
     if(response.status === 502){
         app.currentView = 'backend-down';
-        document.getElementById('javaUno').style.display = 'block';
+        document.getElementById('vueno').style.display = 'block';
         rI = setInterval('self.location.reload()', 5000);
     }
     if(response.url.indexOf('say-uno') >= 0){

@@ -9,14 +9,14 @@ const config = {
     vueDevToolsEnabled: true,
 
     //error messages from backend for no such game and no such player (used to handle out dated localStorage Items)
-    noSuchGameMessage: 'failure: de.johannaherrmann.javauno.exceptions.IllegalArgumentException: There is no such game.',
-    noSuchPlayerMessage: 'failure: de.johannaherrmann.javauno.exceptions.IllegalArgumentException: There is no such player in this game.',
+    noSuchGameMessage: 'failure: de.johannaherrmann.vueno.exceptions.IllegalArgumentException: There is no such game.',
+    noSuchPlayerMessage: 'failure: de.johannaherrmann.vueno.exceptions.IllegalArgumentException: There is no such player in this game.',
 };
 
 const features = {
     //tokenized-game-create: see README.md for feature-description.
-    invalidTokenMessage: 'failure: de.johannaherrmann.javauno.exceptions.InvalidTokenException: Invalid Token provided.',
-    fileReadErrorMessage: 'failure: de.johannaherrmann.javauno.exceptions.FileReadException: Could not read token file in backend. Please try again later or report this error to me.'
+    invalidTokenMessage: 'failure: de.johannaherrmann.vueno.exceptions.InvalidTokenException: Invalid Token provided.',
+    fileReadErrorMessage: 'failure: de.johannaherrmann.vueno.exceptions.FileReadException: Could not read token file in backend. Please try again later or report this error to me.'
 }
 
 

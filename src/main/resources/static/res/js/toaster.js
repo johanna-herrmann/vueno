@@ -6,7 +6,7 @@
  http://michaelcheng.us/
  michael@michaelcheng.us
  --All Rights Reserved--
- edited for javaUno by me:
+ edited for vueno by me:
   * multiple toasters are positioned one above the other instead of stacked positioning
   * big toasts (with fully centered position)
   * variable colors (for dark and light theme)

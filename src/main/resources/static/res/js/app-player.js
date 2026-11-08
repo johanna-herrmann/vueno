@@ -70,7 +70,7 @@ function copyLink(){
 
 function shareLink(){
     let url = app.protocol+'://' + app.hostname + '/invitation.html#game:' + app.gameUuid;
-    let title = 'JavaUno - Einladung zum mitspielen';
+    let title = 'vueno - Einladung zum mitspielen';
     if (navigator.share) {
         navigator.share({
             title: title,
