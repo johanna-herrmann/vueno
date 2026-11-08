@@ -187,7 +187,7 @@ header {
     background: var(--theme-secondary-bgcolor);
 }
 
-header svg.logo {
+header .logo {
     display: inline-block;
     width: 155px;
     height: 26px;
@@ -551,7 +551,7 @@ svg text {
 }
 
 @media (max-width: 875px) {
-    header svg.logo {
+    header .logo {
         width: 119px;
         height: 20px;
         margin-top: 5px;

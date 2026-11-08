@@ -1,6 +1,6 @@
 <template>
 <header>
-  <svg class="logo"><use href="/res/svg/logo.svg#picture" /></svg>
+  <img class="logo" src="/res/svg/logo.svg" alt="vueno" />
   <a href="#" @click="toggleTheme" :class="darkMode ? 'toggleTheme toggle on' : 'toggleTheme toggle'"><span class="fas fa-sun" /></a>
   <a href="#" @click="toggleTheme" :class="!darkMode ? 'toggleTheme toggle on' : 'toggleTheme toggle'"><span class="fas fa-moon" /></a>
   <a v-if="gameLoadedWithPlayer && currentView !== 'switch-device'" :class="currentView !== 'chat' ? 'chatToggle toggle on' : 'chatToggle toggle'" href="#" @click="showChat()"><span class="fas fa-comment" /></a>
