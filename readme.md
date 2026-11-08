@@ -1,30 +1,24 @@
 # vueno - Webapp
 
-The card game as online game (Webapp)
+The famous card game uno as online game (Webapp)
 
 ## Version
-3.0.0 \
-2024, May, 10th
+1.0.0 \
+2026, November, 8th
 
 ## Description
-This is a webapp, powered by SpringBoot and VueJS.
+This is a webapp, powered by Node.js and Vue.js, written in TypeScript.
 
 ## Documentation
-
-### API Documentation
-* Swagger
-  * API Doc: `/v2/api-docs`
-  * UI: `/swagger-ui.html`
 
 ### Manual
 * `/manual.docx` or
 * `/manual.pdf`
     
 ## How to run
-* Pre-requisite: Java (17+, tested with Java 17)
-* build it with 'mvn clean package' (you will get a vueno-xx.jar file)
-* run following command in terminal: java -jar vueno-xx.jar\
-  (xx is the version)
+* Pre-requisite: NodeJS
+* build it with 'npm run build'
+* then run with 'npm run start'
 
 ## Frontend development
 
@@ -38,7 +32,7 @@ npm run dev
 
 Open `http://localhost:8080`. The Vite development server proxies REST and WebSocket requests under `/api` to the backend. Run `npm test` (Vitest) for frontend unit tests. `npm run build` builds the frontend and copies it into `backend/static`, which the Express backend serves.
 
-## Node backend (replacement implementation)
+## Node backend
 
 A TypeScript/Express backend is available in `backend`. Start it with `cd backend && npm install && npm run dev`; it uses port 9001 by default, so only one of the Java and Node backends can run on that port at a time. Its saved games use JSON under `./data/games`; existing Java-serialized saves are not compatible. See [backend/README.md](backend/README.md) for configuration, build, and Jest commands.
 

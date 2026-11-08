@@ -1,0 +1,19 @@
+{
+  "name": "vueno",
+  "version": "1.0.0",
+  "description": "The famous card game uno as online game (Webapp).",
+  "scripts": {
+    "test": "cd backend && npm run test && cd ../frontend && npm run test",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "start": "node backend/dist/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johanna-herrmann/vueno.git"
+  },
+  "author": "Johanna Herrmann",
+  "bugs": {
+    "url": "https://github.com/johanna-herrmann/vueno/issues"
+  },
+  "homepage": "https://github.com/johanna-herrmann/vueno#readme"
+}
