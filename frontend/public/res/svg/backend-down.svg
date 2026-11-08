@@ -1,8 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 190">
-  <symbol viewBox="0 0 470 190" id="image">
-    <style>
-      @font-face {font-family:"Arial";src: url("/test/webfonts/arial.ttf");}
-    </style>
+<svg xmlns="http://www.w3.org/2000/svg" width="470" height="190" viewBox="0 0 470 190">
     <rect x="0" y="0" width="470" height="190" fill="#e5f3fe" />
     <rect x="63" y="108" width="40" height="10" fill="#1076c7" />
     <path d="M 25 31 L 141 31 A 6 6 0 0 1 146 37 L 146 113 L 159 113 L 159 116 A 8 8 0 0 1 153 125 L 12 125 A 8 8 0 0 1 6 120 L 6 113 L 19 113 L 19 37 A 6 6 0 0 1 25 31 Z M 19 113 L 64 113 L 66 117 L 99 117 L 101 113 L 146 113" fill="#cce6fe" stroke="#1076c7" stroke-width="3" />
@@ -26,5 +22,4 @@
     <text x="200" y="183" style="font-family:Arial,sans-serif;font-size:30px;font-weight:bold;fill:#1076c7">Server</text>
     <text x="305" y="153" style="font-family:Arial,sans-serif;font-size:30px;font-weight:bold;fill:#1076c7">Application</text>
     <text x="337" y="183" style="font-family:Arial,sans-serif;font-size:30px;font-weight:bold;fill:#1076c7">Server</text>
-  </symbol>
 </svg>
