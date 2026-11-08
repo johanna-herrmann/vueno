@@ -38,6 +38,10 @@ npm run dev
 
 Open `http://localhost:8080`. The Vite development server proxies REST and WebSocket requests under `/api` to the backend. Run `npm test` (Vitest) for frontend unit tests. `npm run build` builds the frontend and copies it into `src/main/resources/static`; run this before packaging the Spring Boot application.
 
+## Node backend (replacement implementation)
+
+A TypeScript/Express backend is available in `backend`. Start it with `cd backend && npm install && npm run dev`; it uses port 9001 by default, so only one of the Java and Node backends can run on that port at a time. Its saved games use JSON under `./data/games`; existing Java-serialized saves are not compatible. See [backend/README.md](backend/README.md) for configuration, build, and Jest commands.
+
 ## Application Arguments
 * `--server.port`: Sets the port the applications listens to (default: 9001)
 * `--server.address`: Sets the ip addresses the application will be reachable from (default: 0.0.0.0 meaning 'all')
