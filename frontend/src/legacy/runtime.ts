@@ -696,6 +696,15 @@ function handleRequestError(response) {
     } else {
         stopProcessingAnimation();
     }
+    if(response.status === 404 && response.url.includes('/gameState/get/')){
+        if(response.data.message !== undefined && response.data.message.includes('There is no such player in this game.')){
+            localStorage.removeItem('playerUuid');
+            self.location.reload();
+        } else {
+            reset();
+        }
+        return;
+    }
     if(response.data.message !== undefined){
         console.error("Request-Error: " + response.data.message);
         if(response.data.message === noSuchGameMessage){
@@ -808,7 +817,11 @@ function reset(){
     localStorage.removeItem('invitation');
     localStorage.removeItem('sayUno');
     localStorage.removeItem('readMessages');
-    self.location.replace('/');
+    if(window.location.pathname === '/' && window.location.search === '' && window.location.hash === ''){
+        self.location.reload();
+    } else {
+        self.location.replace('/');
+    }
 }
 
 function handleInvitation(){
