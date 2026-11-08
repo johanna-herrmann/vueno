@@ -105,7 +105,7 @@ iqwerty.toast = (function() {
          * @type {Boolean}
          */
         this.stylized = false;
-    };
+    }
 
     /**
      * Specifies whether or not the stylesheet exists in the document head
@@ -961,7 +961,7 @@ function startVueno() {
 }
 
 
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function() {
     if(document.activeElement.toString() !== '[object HTMLInputElement]' && document.activeElement.toString() !== '[object HTMLTextAreaElement]'){
         document.activeElement.blur();
         setTimeout(() => document.activeElement.blur(), 100);
@@ -1150,12 +1150,11 @@ function copySwitchLink(){
 
 function generateUUID() {
     let d = new Date().getTime();
-    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         let r = (d + Math.random()*16)%16 | 0;
         d = Math.floor(d/16);
         return (c=='x' ? r : (r&0x3|0x8)).toString(16);
     });
-    return uuid;
 }
 
 function getSwitchOutUrl(){
@@ -2024,7 +2023,7 @@ const doPushActionBotifiedPlayer = function(message){
 };
 
 const doPushActionPutCard = function(message){
-    const topCardJson = message.body.replace(/^put-card:(\{.*\}).*$/, '$1');
+    const topCardJson = message.body.replace(/^put-card:(\{.*}).*$/, '$1');
     const topCard = JSON.parse(topCardJson);
     if(app.gameState.game.gameLifecycle === 'RUNNING') {
         const cardCount = app.gameState.players[app.gameState.game.currentPlayerIndex].cardCount - 1;
