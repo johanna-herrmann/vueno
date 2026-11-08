@@ -10,7 +10,6 @@ import de.johannaherrmann.javauno.exceptions.IllegalArgumentException;
 import de.johannaherrmann.javauno.service.push.PushMessage;
 import de.johannaherrmann.javauno.service.push.PushService;
 import org.assertj.core.data.Percentage;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,14 +18,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.File;
 import java.lang.IllegalStateException;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -41,16 +38,15 @@ public class GameServiceTest {
     @MockBean
     private TokenService tokenService;
 
+    @MockBean
+    private GlobalStateService globalStateService;
+
     private Game game;
 
     @Before
     public void setup(){
         game = TestHelper.createGame(gameService);
-    }
-
-    @After
-    public void teardown(){
-        TestHelper.deleteGames();
+        reset(globalStateService);
     }
 
     @Test
@@ -59,6 +55,7 @@ public class GameServiceTest {
 
         assertThat(uuid).isNotNull();
         assertThat(UnoState.containsGame(uuid)).isTrue();
+        verify(globalStateService, times(1)).saveGame(any());
     }
 
     @Test
@@ -122,6 +119,7 @@ public class GameServiceTest {
         gameService.startGame(game.getUuid());
 
         assertStartedGameState();
+        verify(globalStateService, times(1)).saveGame(any());
     }
 
     @Test
@@ -187,6 +185,7 @@ public class GameServiceTest {
         assertThat(game.getMessages().get(0).getPlayerPublicUuid()).isEqualTo(player.getPublicUuid());
         assertThat(game.getMessages().get(0).getTime()).isCloseTo(System.currentTimeMillis(), Percentage.withPercentage(0.000001));
         assertThat(game.getMessages().get(0).getContent()).isEqualTo(testContent);
+        verify(globalStateService, times(1)).saveGame(any());
     }
 
     @Test
