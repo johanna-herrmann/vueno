@@ -1,6 +1,6 @@
 import { Server } from 'node:http';
 import sockjs from 'sockjs';
-import { Game, Player, TurnState } from './model';
+import { Game, Player } from './model';
 
 type SockConnection = sockjs.Connection;
 const connections = new Set<SockConnection>();
@@ -40,7 +40,7 @@ export function publish(destinationUuid: string, body: string): void {
   }
 }
 
-export type PushName = 'started-game'|'added-player'|'removed-player'|'botified-player'|'request-botify-player'|'cancel-botify-player'|'put-card'|'drawn-card'|'drawn-cards'|'kept-card'|'selected-color'|'said-uno'|'next-turn'|'finished-game'|'request-stop-party'|'revoke-request-stop-party'|'stop-party'|'end'|'switch-in'|'switch-finished'|'chat-message';
+export type PushName = 'started-game'|'added-player'|'removed-player'|'botified-player'|'request-botify-player'|'cancel-botify-player'|'put-card'|'drawn-card'|'drawn-cards'|'kept-card'|'selected-color'|'said-uno'|'next-turn'|'finished-game'|'request-stop-party'|'revoke-request-stop-party'|'stop-party'|'end'|'switch-in'|'switch-finished'|'chat-message'|'house-rules-updated'|'swapped-hands';
 export function push(name: PushName, game: Game, extra?: string): void {
   const index = game.playerIndexForPush;
   const player = game.players[index];
@@ -65,5 +65,5 @@ export function push(name: PushName, game: Game, extra?: string): void {
   publish(game.uuid, enhanced[name] ?? [name, ...(extra ? [extra] : [])].join(':'));
 }
 export function setPushIndex(game: Game, player: Player): void { game.playerIndexForPush = game.players.indexOf(player); }
-export function currentTurnIs(game: Game, states: TurnState[]): boolean { return states.includes(game.turnState); }
+//export function currentTurnIs(game: Game, states: TurnState[]): boolean { return states.includes(game.turnState); }
 export function attachPush(server: Server): void { pushServer.installHandlers(server, { prefix: '/api/ws' }); }

@@ -35,7 +35,8 @@
                                    v-for="topCard in topCardInSingleList"
                                    :key="topCard.uuid">
                               <svg v-bind:class="`front ${topCard.desiredColor}`">
-                                  <use v-bind:href="`res/svg/cards.svg#${getCardImage(topCard)}`" />
+                                <!--suppress XmlUnboundNsPrefix -->
+                                <use v-bind:href="`res/svg/cards.svg#${getCardImage(topCard)}`" />
                               </svg>
                               <img src="/res/img/back.png" alt="" class="back">
                           </div>
@@ -67,6 +68,14 @@
                               </div>
                           </div>
                       </div>
+                      <div id="hand-swap-selection" v-if="gameState.game.turnState === 'SELECT_PLAYER_TO_SWAP' && isMyTurn()">
+                          <p>Wähle einen Spieler, mit dem du deine Hand tauschen möchtest:</p>
+                          <template v-for="(player, index) in gameState.players" :key="player.publicUuid">
+                              <button v-if="index !== gameState.myIndex" class="small" @click="swapHandsWith(index)">
+                                  {{ getPlayerName(player.name, index) }}
+                              </button>
+                          </template>
+                      </div>
                   </div>
                   <div id="ownCards" v-bind:class="isMyTurn() && gameState.game.turnState === 'PUT_DRAWN' ? 'putDrawn' : ''">
                       <div class="current">
@@ -82,6 +91,7 @@
                               v-for="(card, index) in gameState.ownCards" :key="card.uuid">
                                   <div v-bind:class="isPutAllowed(card, index) ? 'turn-around enabled' : 'turn-around disabled'" @click="put(card, index)">
                                       <svg class="front">
+                                          <!--suppress XmlUnboundNsPrefix -->
                                           <use v-bind:href="`res/svg/cards.svg#${getCardImage(card)}`" />
                                       </svg>
                                       <img src="/res/img/back.png" alt="" class="back">

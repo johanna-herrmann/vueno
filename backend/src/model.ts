@@ -1,8 +1,23 @@
 import { randomUUID } from 'node:crypto';
 
 export type CardType = 'NUMBER' | 'SKIP' | 'REVERSE' | 'JOKER' | 'DRAW_2' | 'DRAW_4';
-export type TurnState = 'DRAW_PENALTIES' | 'DRAW_DUTIES_OR_CUMULATIVE' | 'PUT_OR_DRAW' | 'PUT_DRAWN' | 'SELECT_COLOR' | 'FINAL_COUNTDOWN';
+export type TurnState = 'DRAW_PENALTIES' | 'DRAW_DUTIES_OR_CUMULATIVE' | 'PUT_OR_DRAW' | 'PUT_DRAWN' | 'SELECT_COLOR' | 'SELECT_PLAYER_TO_SWAP' | 'FINAL_COUNTDOWN';
 export type Lifecycle = 'SET_PLAYERS' | 'RUNNING';
+export interface HouseRules {
+  mixedDrawStacking: boolean;
+  sevenZero: boolean;
+  actionStartingCard: boolean;
+}
+export const DEFAULT_HOUSE_RULES: HouseRules = {
+  mixedDrawStacking: true,
+  sevenZero: true,
+  actionStartingCard: true,
+};
+export const CLASSIC_HOUSE_RULES: HouseRules = {
+  mixedDrawStacking: false,
+  sevenZero: false,
+  actionStartingCard: false,
+};
 export interface Card {
   cardType: CardType; color: string; value: number; uuid: string;
   numberCard: boolean; jokerCard: boolean; drawCard: boolean; drawValue: number;
@@ -18,6 +33,7 @@ export interface Game {
   gameLifecycle: Lifecycle; lastAction: number; turnState: TurnState; drawDuties: number; skip: boolean;
   playerIndexForPush: number; party: number; stopPartyRequested: number; lastWinner: number; messages: ChatMessage[];
   drawnCards: number; drawReason: string | null; previousFirstCardReceivers: string[];
+  houseRules: HouseRules; pendingHandSwapPlayerIndex: number | null;
 }
 
 export function card(type: CardType, color?: string, value = 20): Card {
@@ -37,7 +53,8 @@ export function newGame(): Game {
   return { uuid: randomUUID(), humans: {}, bots: {}, players: [], discardPile: [], drawPile: [], reversed: false,
     desiredColor: null, currentPlayerIndex: 0, gameLifecycle: 'SET_PLAYERS', lastAction: Date.now(), turnState: 'PUT_OR_DRAW',
     drawDuties: 0, skip: false, playerIndexForPush: 0, party: 0, stopPartyRequested: 0, lastWinner: -1,
-    messages: [], drawnCards: 0, drawReason: null, previousFirstCardReceivers: [] };
+    messages: [], drawnCards: 0, drawReason: null, previousFirstCardReceivers: [],
+    houseRules: { ...DEFAULT_HOUSE_RULES }, pendingHandSwapPlayerIndex: null };
 }
 
 export function playerView(p: Player) {
@@ -48,5 +65,6 @@ export function gameView(g: Game) {
   return { reversed: g.reversed, desiredColor: g.desiredColor, currentPlayerIndex: g.currentPlayerIndex,
     gameLifecycle: g.gameLifecycle, topCard: g.discardPile.at(-1) ?? null, lastAction: g.lastAction, turnState: g.turnState,
     drawDuties: g.drawDuties, skip: g.skip, party: g.party, stopPartyRequested: g.stopPartyRequested,
-    messages: g.messages, previousFirstCardReceivers: g.previousFirstCardReceivers };
+    messages: g.messages, previousFirstCardReceivers: g.previousFirstCardReceivers, houseRules: g.houseRules,
+    pendingHandSwapPlayerIndex: g.pendingHandSwapPlayerIndex };
 }
