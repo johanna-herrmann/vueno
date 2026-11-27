@@ -1,6 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { Game } from './model';
+import { CLASSIC_HOUSE_RULES, Game, HouseRules } from './model';
+
+function normalizeHouseRules(value: unknown): HouseRules {
+  const rules = value && typeof value === 'object' ? value as Partial<HouseRules> : {};
+  return {
+    mixedDrawStacking: typeof rules.mixedDrawStacking === 'boolean' ? rules.mixedDrawStacking : false,
+    sevenZero: typeof rules.sevenZero === 'boolean' ? rules.sevenZero : false,
+    actionStartingCard: typeof rules.actionStartingCard === 'boolean' ? rules.actionStartingCard : false,
+  };
+}
 
 export class GameStore {
   readonly games = new Map<string, Game>();
@@ -10,7 +19,12 @@ export class GameStore {
       if (!entry.isFile()) continue;
       try {
         const game = JSON.parse(fs.readFileSync(path.join(directory, entry.name), 'utf8')) as Game;
-        if (game?.uuid) { game.lastAction = Date.now(); this.games.set(game.uuid, game); }
+        if (game?.uuid) {
+          game.lastAction = Date.now();
+          game.houseRules = normalizeHouseRules(game.houseRules ?? CLASSIC_HOUSE_RULES);
+          game.pendingHandSwapPlayerIndex ??= null;
+          this.games.set(game.uuid, game);
+        }
       } catch { /* Ignore corrupt or unrelated files, like the Java loader. */ }
     }
   }
