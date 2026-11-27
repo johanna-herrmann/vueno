@@ -8,6 +8,10 @@ import { push, PushName, setPushIndex } from './push';
 
 export function createApp(store = new GameStore()): express.Express {
   const app = express();
+  app.use((_req, res, next) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex');
+    next();
+  });
   app.use(express.json());
   const ok = (message = 'success') => ({ success: true, message });
   const game = (id: string) => store.get(id);
