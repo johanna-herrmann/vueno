@@ -8,6 +8,10 @@ import { push, PushName, setPushIndex } from './push';
 
 export function createApp(store = new GameStore()): express.Express {
   const app = express();
+  app.use((_req, res, next) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex');
+    next();
+  });
   app.use(express.json());
   const ok = (message = 'success') => ({ success: true, message });
   const game = (id: string) => store.get(id);
@@ -53,14 +57,40 @@ export function createApp(store = new GameStore()): express.Express {
     if (top.cardType === 'NUMBER') return c.value === top.value || c.color === top.color;
     return c.cardType === top.cardType || c.color === top.color;
   };
+  const canStackDrawCard = (g: Game, top: Card, candidate: Card) => candidate.drawValue > 0 &&
+    (g.houseRules.mixedDrawStacking || candidate.drawValue === top.drawValue);
+  const rotateHands = (g: Game) => {
+    const count = g.players.length;
+    if (count < 2) return;
+    const direction = g.reversed ? -1 : 1;
+    const hands = g.players.map(current => current.cards);
+    for (let index = 0; index < count; index++) {
+      g.players[(index + direction + count) % count].cards = hands[index];
+    }
+  };
+  const finishPut = (g: Game, p: Player) => {
+    broadcast('put-card',g);
+    if(!p.cards.length && g.turnState !== 'SELECT_PLAYER_TO_SWAP') {
+      g.gameLifecycle='SET_PLAYERS';
+      g.turnState='FINAL_COUNTDOWN';
+      g.lastWinner=g.players.indexOf(p);
+      broadcast('finished-game',g);
+    }
+  };
   const put = (g: Game, p: Player, c: Card, index: number) => {
     p.cards.splice(index,1); g.discardPile.push(c);
     g.drawDuties += c.drawValue;
     if(c.cardType === 'SKIP' || (c.cardType === 'REVERSE' && g.players.length === 2)) g.skip = true;
     if(c.cardType === 'REVERSE') g.reversed = !g.reversed;
     g.desiredColor = null;
-    g.turnState = c.jokerCard ? 'SELECT_COLOR' : 'FINAL_COUNTDOWN';
     p.unoSaid = false;
+    if(g.houseRules.sevenZero && c.cardType === 'NUMBER' && c.value === 7 && p.cards.length > 0) {
+      g.pendingHandSwapPlayerIndex = g.players.indexOf(p);
+      g.turnState = 'SELECT_PLAYER_TO_SWAP';
+      return;
+    }
+    if(g.houseRules.sevenZero && c.cardType === 'NUMBER' && c.value === 0) rotateHands(g);
+    g.turnState = c.jokerCard ? 'SELECT_COLOR' : 'FINAL_COUNTDOWN';
     if(!p.cards.length) { g.gameLifecycle='SET_PLAYERS'; g.turnState='FINAL_COUNTDOWN'; g.lastWinner=g.players.indexOf(p); }
   };
   const drawOne = (g: Game, p: Player) => {
@@ -80,6 +110,21 @@ export function createApp(store = new GameStore()): express.Express {
     g.drawReason=p.drawPenalties>0?'penalties':'duties'; g.drawnCards=count;
     for(let i=0;i<count;i++) drawOne(g,p);
   };
+  const swapHands = (g: Game, firstIndex: number, secondIndex: number) => {
+    const first = g.players[firstIndex];
+    const second = g.players[secondIndex];
+    [first.cards, second.cards] = [second.cards, first.cards];
+    first.unoSaid = false;
+    second.unoSaid = false;
+    g.pendingHandSwapPlayerIndex = null;
+    g.turnState = 'FINAL_COUNTDOWN';
+    if (!first.cards.length) {
+      g.gameLifecycle = 'SET_PLAYERS';
+      g.lastWinner = firstIndex;
+      broadcast('finished-game',g);
+    }
+    broadcast('swapped-hands',g,`${firstIndex}:${secondIndex}`);
+  };
   const nextPlayer = (g: Game) => {
     const current=g.players[g.currentPlayerIndex];
     if(current && ((current.cards.length===1 && !current.unoSaid)||(current.cards.length!==1 && current.unoSaid))) current.drawPenalties=2;
@@ -97,22 +142,27 @@ export function createApp(store = new GameStore()): express.Express {
       if (g.turnState === 'DRAW_PENALTIES') { drawMany(g,p); broadcast('drawn-cards',g); }
       else if (g.turnState === 'DRAW_DUTIES_OR_CUMULATIVE') {
         const top=g.discardPile.at(-1)!;
-        const candidate=top.drawCard?p.cards.find(c=>c.drawValue===top.drawValue):undefined;
-        if(candidate) { put(g,p,candidate,p.cards.indexOf(candidate)); broadcast('put-card',g); }
+        const candidate=top.drawCard?p.cards.find(c=>canStackDrawCard(g,top,c)):undefined;
+        if(candidate) { put(g,p,candidate,p.cards.indexOf(candidate)); finishPut(g,p); }
         else { drawMany(g,p); broadcast('drawn-cards',g); }
       } else if (g.turnState === 'PUT_OR_DRAW') {
         let candidates=p.cards.filter(c=>match(g,c));
         if(candidates.some(c=>!c.jokerCard)) candidates=candidates.filter(c=>!c.jokerCard);
         const c=candidates[Math.floor(Math.random()*candidates.length)];
-        if(c) {put(g,p,c,p.cards.indexOf(c));broadcast('put-card',g);} else {drawOne(g,p);broadcast('drawn-card',g);}
+        if(c) {put(g,p,c,p.cards.indexOf(c));finishPut(g,p);}
+        else {drawOne(g,p);broadcast('drawn-card',g);}
       } else if (g.turnState === 'PUT_DRAWN') {
         const c=p.cards.at(-1)!;
-        if(match(g,c)){put(g,p,c,p.cards.length-1);broadcast('put-card',g);}else{g.turnState='FINAL_COUNTDOWN';broadcast('kept-card',g);}
+        if(match(g,c)){put(g,p,c,p.cards.length-1);finishPut(g,p);}else{g.turnState='FINAL_COUNTDOWN';broadcast('kept-card',g);}
       } else if (g.turnState === 'SELECT_COLOR') {
         const colors=['RED','GREEN','BLUE','YELLOW']; const counts=colors.map(color=>p.cards.filter(c=>!c.jokerCard&&c.color===color).length);
         g.desiredColor=colors[counts.indexOf(Math.max(...counts))];g.turnState='FINAL_COUNTDOWN';broadcast('selected-color',g);
+      } else if (g.turnState === 'SELECT_PLAYER_TO_SWAP') {
+        const firstIndex=g.players.indexOf(p);
+        const targetIndex=(firstIndex+1+Math.floor(Math.random()*(g.players.length-1)))%g.players.length;
+        swapHands(g,firstIndex,targetIndex);
       }
-      if (!p.cards.length) {g.lastWinner=g.players.indexOf(p);broadcast('finished-game',g);}
+      if (!p.cards.length && g.gameLifecycle==='RUNNING' && g.turnState!=='SELECT_PLAYER_TO_SWAP') {g.lastWinner=g.players.indexOf(p);g.gameLifecycle='SET_PLAYERS';g.turnState='FINAL_COUNTDOWN';broadcast('finished-game',g);}
       save(g);
       if(g.turnState==='FINAL_COUNTDOWN'&&g.gameLifecycle==='RUNNING') {
         if(p.cards.length===1 && Math.random()<0.9) {p.unoSaid=true;setPushIndex(g,p);broadcast('said-uno',g);}
@@ -137,19 +187,43 @@ export function createApp(store = new GameStore()): express.Express {
     } catch(e) { next(e); }
   });
   app.get('/api/game/tokenized-game-create-enabled',(_req,res)=>res.json({success:true,message:process.env.VUENO_FEATURE_TOKENIZED_GAME_CREATE==='on'?'on':'off'}));
+  app.post('/api/game/house-rules/:gameUuid',(req,res,next)=>{try{
+    const g=game(req.params.gameUuid);requireLifecycle(g,'SET_PLAYERS');
+    const keys=['mixedDrawStacking','sevenZero','actionStartingCard'] as const;
+    if(!req.body.houseRules || keys.some(key=>typeof req.body.houseRules[key]!=='boolean')) throw new ApiError(400,'Invalid house rules.','IllegalArgumentException');
+    g.houseRules=Object.fromEntries(keys.map(key=>[key,req.body.houseRules[key]])) as Game['houseRules'];
+    save(g);broadcast('house-rules-updated',g);res.json(ok());
+  }catch(e){next(e);}});
   app.post('/api/game/start/:gameUuid',(req,res,next)=>{ try {
     const g=game(req.params.gameUuid); requireLifecycle(g,'SET_PLAYERS');
     if(g.players.length<2) throw new ApiError(400,'There are not enough players in the game.','IllegalStateException');
     for(const p of g.players){p.cards=[];p.unoSaid=false;p.drawPenalties=0;p.drawn=0;p.stopPartyRequested=false;}
-    g.drawPile=[];g.discardPile=[];g.reversed=false;g.desiredColor=null;g.skip=false;g.drawDuties=0;g.stopPartyRequested=0;g.turnState='PUT_OR_DRAW';
+    g.drawPile=[];g.discardPile=[];g.reversed=false;g.desiredColor=null;g.skip=false;g.drawDuties=0;g.pendingHandSwapPlayerIndex=null;g.stopPartyRequested=0;g.turnState='PUT_OR_DRAW';
     g.currentPlayerIndex=g.lastWinner>=0?g.lastWinner:Math.floor(Math.random()*g.players.length);
-    let deck=getDeck(); while(!deck.at(-1)?.numberCard) deck=getDeck();
+    let deck=getDeck();
+    if(!g.houseRules.actionStartingCard) while(!deck.at(-1)?.numberCard) deck=getDeck();
     if(g.previousFirstCardReceivers.length===g.players.length) g.previousFirstCardReceivers=[];
     const eligible=g.players.map((p,i)=>({p,i})).filter(({p})=>!g.previousFirstCardReceivers.includes(p.uuid));
     const receiver=eligible[Math.floor(Math.random()*eligible.length)].i;
     g.previousFirstCardReceivers.push(g.players[receiver].uuid);
     for(let i=0;i<7;i++) for(let j=0;j<g.players.length;j++) g.players[(receiver+j)%g.players.length].cards.push(deck.pop()!);
-    g.discardPile.push(deck.pop()!);g.drawPile=deck;g.gameLifecycle='RUNNING';g.party++;save(g);broadcast('started-game',g);res.json(ok());runBot(g,g.players[g.currentPlayerIndex]);
+    const openingCard=deck.pop()!;
+    g.discardPile.push(openingCard);
+    g.drawPile=deck;
+    if(g.houseRules.actionStartingCard) {
+      if(openingCard.cardType==='SKIP') g.currentPlayerIndex=(g.currentPlayerIndex+1)%g.players.length;
+      else if(openingCard.cardType==='REVERSE') {
+        g.reversed=true;
+        if(g.players.length===2) g.currentPlayerIndex=(g.currentPlayerIndex+1)%g.players.length;
+      } else if(openingCard.cardType==='DRAW_2' || openingCard.cardType==='DRAW_4') {
+        g.drawDuties=openingCard.drawValue;
+        g.turnState='DRAW_DUTIES_OR_CUMULATIVE';
+        if(openingCard.cardType==='DRAW_4') g.desiredColor=['RED','GREEN','BLUE','YELLOW'][Math.floor(Math.random()*4)];
+      } else if(openingCard.cardType==='JOKER') {
+        g.desiredColor=['RED','GREEN','BLUE','YELLOW'][Math.floor(Math.random()*4)];
+      }
+    }
+    g.gameLifecycle='RUNNING';g.party++;save(g);broadcast('started-game',g);res.json(ok());runBot(g,g.players[g.currentPlayerIndex]);
   }catch(e){next(e);}});
   app.post('/api/player/add',(req,res,next)=>{try{
     const g=game(String(req.body.gameUuid));requireLifecycle(g,'SET_PLAYERS');
@@ -174,18 +248,24 @@ export function createApp(store = new GameStore()): express.Express {
   app.get('/api/gameState/get/:gameUuid',(req,res,next)=>{try{res.json(publicGameState(game(req.params.gameUuid)));}catch(e){next(e);}});
   app.post('/api/turn/put',(req,res,next)=>{try{
     const g=game(String(req.body.gameUuid)),p=player(g,String(req.body.playerUuid)),idx=Number(req.body.cardIndex);
-    requireLifecycle(g,'RUNNING');requireTurn(g,p,['DRAW_DUTIES_OR_CUMULATIVE','PUT_OR_DRAW','PUT_DRAWN']);
+    requireLifecycle(g,'RUNNING');
+    const validPutStates: TurnState[]=['DRAW_DUTIES_OR_CUMULATIVE','PUT_OR_DRAW','PUT_DRAWN'];
+    if(!validPutStates.includes(g.turnState)) throw new ApiError(400,'The current turn of the game is in wrong state.','IllegalStateException');
     const c=p.cards[idx],incoming=req.body.card as Card;
     if(!c||!incoming||c.cardType!==incoming.cardType||c.color!==incoming.color||c.value!==incoming.value) throw new ApiError(404,'The player has no has no such card at this position.','IllegalArgumentException');
-    if(g.turnState==='PUT_DRAWN' && idx!==p.cards.length-1) throw new ApiError(400,'','CardDoesNotMatchException');
-    if(g.turnState==='DRAW_DUTIES_OR_CUMULATIVE'&&c.drawValue!==(g.discardPile.at(-1)?.drawValue??0)) throw new ApiError(400,'Card does not match.');
-    if(!match(g,c)) throw new ApiError(400,'','CardDoesNotMatchException');
-    put(g,p,c,idx);broadcast('put-card',g);if(!p.cards.length)broadcast('finished-game',g);save(g);res.json({success:true,message:'success',card:g.discardPile.at(-1)});
+    const isCurrentPlayer=g.players[g.currentPlayerIndex]===p;
+    const top=g.discardPile.at(-1)!;
+    if(!isCurrentPlayer) throw new ApiError(400,"It's not your turn.",'IllegalStateException');
+    if(isCurrentPlayer && g.turnState==='PUT_DRAWN' && idx!==p.cards.length-1) throw new ApiError(400,'','CardDoesNotMatchException');
+    if(isCurrentPlayer && g.turnState==='DRAW_DUTIES_OR_CUMULATIVE' && !canStackDrawCard(g,top,c)) throw new ApiError(400,'','CardDoesNotMatchException');
+    if(!match(g,c) && !(g.turnState==='DRAW_DUTIES_OR_CUMULATIVE' && canStackDrawCard(g,top,c))) throw new ApiError(400,'','CardDoesNotMatchException');
+    put(g,p,c,idx);finishPut(g,p);save(g);res.json({success:true,message:'success',card:g.discardPile.at(-1)});
   }catch(e){next(e);}});
   app.post('/api/turn/draw/:gameUuid/:playerUuid',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);requireLifecycle(g,'RUNNING');requireTurn(g,p,['PUT_OR_DRAW']);const c=drawOne(g,p);if(g.turnState==='PUT_DRAWN'&&!match(g,c))g.turnState='FINAL_COUNTDOWN';save(g);broadcast('drawn-card',g);res.json(ok());}catch(e){next(e);}});
   app.post('/api/turn/draw-multiple/:gameUuid/:playerUuid',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);requireLifecycle(g,'RUNNING');requireTurn(g,p,['DRAW_PENALTIES','DRAW_DUTIES_OR_CUMULATIVE']);drawMany(g,p);save(g);broadcast('drawn-cards',g);res.json(ok());}catch(e){next(e);}});
   app.post('/api/turn/select-color/:gameUuid/:playerUuid/:color',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);requireLifecycle(g,'RUNNING');requireTurn(g,p,['SELECT_COLOR']);const color=req.params.color.toUpperCase();if(!['RED','GREEN','BLUE','YELLOW'].includes(color))throw new ApiError(404,'There is no such color in UNO.','IllegalArgumentException');g.desiredColor=color;g.turnState='FINAL_COUNTDOWN';broadcast('selected-color',g);save(g);res.json(ok());}catch(e){next(e);}});
-  app.post('/api/turn/say-uno/:gameUuid/:playerUuid',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);requireLifecycle(g,'RUNNING');requireTurn(g,p,['SELECT_COLOR','FINAL_COUNTDOWN']);p.unoSaid=true;setPushIndex(g,p);broadcast('said-uno',g);save(g);res.json(ok());}catch(e){next(e);}});
+  app.post('/api/turn/swap-hands/:gameUuid/:playerUuid/:targetIndex',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);requireLifecycle(g,'RUNNING');requireTurn(g,p,['SELECT_PLAYER_TO_SWAP']);const source=g.pendingHandSwapPlayerIndex,target=Number(req.params.targetIndex);if(source===null||g.players[source]!==p||!Number.isInteger(target)||target<0||target>=g.players.length||target===source)throw new ApiError(400,'Invalid hand swap target.','IllegalArgumentException');swapHands(g,source,target);save(g);res.json(ok());}catch(e){next(e);}});
+  app.post('/api/turn/say-uno/:gameUuid/:playerUuid',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);requireLifecycle(g,'RUNNING');requireTurn(g,p,['SELECT_COLOR','SELECT_PLAYER_TO_SWAP','FINAL_COUNTDOWN']);p.unoSaid=true;setPushIndex(g,p);broadcast('said-uno',g);save(g);res.json(ok());}catch(e){next(e);}});
   app.post('/api/turn/keep/:gameUuid/:playerUuid',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);requireLifecycle(g,'RUNNING');requireTurn(g,p,['PUT_DRAWN']);g.turnState='FINAL_COUNTDOWN';broadcast('kept-card',g);save(g);res.json(ok());}catch(e){next(e);}});
   app.post('/api/turn/next/:gameUuid/:playerUuid',(req,res,next)=>{try{const g=game(req.params.gameUuid),p=player(g,req.params.playerUuid);requireLifecycle(g,'RUNNING');requireTurn(g,p,['FINAL_COUNTDOWN']);nextPlayer(g);save(g);res.json(ok());runBot(g,g.players[g.currentPlayerIndex]);}catch(e){next(e);}});
   app.post('/api/game/chat/send-message',(req,res,next)=>{try{const g=game(String(req.body.gameUuid)),p=player(g,String(req.body.playerUuid)),content=String(req.body.content??'').trim();if(!content)throw new ApiError(400,'Chat message is empty. Will not save empty messages.','EmptyArgumentException');const msg={content,playerPublicUuid:p.publicUuid,time:Date.now()};g.messages.push(msg);broadcast('chat-message',g,`${p.publicUuid}:${msg.time}:${content}`);save(g);res.status(201).json(ok());}catch(e){next(e);}});
@@ -204,7 +284,7 @@ export function createApp(store = new GameStore()): express.Express {
     if(fs.existsSync(index)) res.sendFile(index); else next();
   });
   app.all('*',(req,res)=>{
-    const known = /^\/api\/(game\/(create(?:\/[^/]+)?|start\/[^/]+|tokenized-game-create-enabled|chat\/send-message)|gameState\/get\/[^/]+(?:\/[^/]+)?|player\/(add|remove\/[^/]+\/[^/]+|removeBot\/[^/]+\/[^/]+|removeBotInGame\/[^/]+\/[^/]+|botify\/[^/]+\/[^/]+|request-botify\/[^/]+\/[^/]+|cancel-botify\/[^/]+\/[^/]+|request-stop-party\/[^/]+\/[^/]+|revoke-request-stop-party\/[^/]+\/[^/]+)|turn\/(put|draw\/[^/]+\/[^/]+|draw-multiple\/[^/]+\/[^/]+|select-color\/[^/]+\/[^/]+\/[^/]+|say-uno\/[^/]+\/[^/]+|keep\/[^/]+\/[^/]+|next\/[^/]+\/[^/]+)|switch\/(finished\/[^/]+\/[^/]+|in\/[^/]+\/[^/]+\/[^/]+\/[^/]+\/[^/]+))$/;
+    const known = /^\/api\/(game\/(create(?:\/[^/]+)?|start\/[^/]+|house-rules\/[^/]+|tokenized-game-create-enabled|chat\/send-message)|gameState\/get\/[^/]+(?:\/[^/]+)?|player\/(add|remove\/[^/]+\/[^/]+|removeBot\/[^/]+\/[^/]+|removeBotInGame\/[^/]+\/[^/]+|botify\/[^/]+\/[^/]+|request-botify\/[^/]+\/[^/]+|cancel-botify\/[^/]+\/[^/]+|request-stop-party\/[^/]+\/[^/]+|revoke-request-stop-party\/[^/]+\/[^/]+)|turn\/(put|draw\/[^/]+\/[^/]+|draw-multiple\/[^/]+\/[^/]+|swap-hands\/[^/]+\/[^/]+\/[^/]+|select-color\/[^/]+\/[^/]+\/[^/]+|say-uno\/[^/]+\/[^/]+|keep\/[^/]+\/[^/]+|next\/[^/]+\/[^/]+)|switch\/(finished\/[^/]+\/[^/]+|in\/[^/]+\/[^/]+\/[^/]+\/[^/]+\/[^/]+))$/;
     if(known.test(req.path)) res.status(405).json({success:false,message:'failure: Wrong request method'});
     else res.status(404).json({success:false,message:'failure: Bad URL. Wrong path or missing url arguments'});
   });

@@ -1,6 +1,7 @@
 <template>
   <!-- Set players view - From here Players can be added and removed and game round can be started -->
               <div id="view-set-players" v-if="currentView === 'set_players'" class="view">
+                  <HouseRulesPanel :app="app" />
                   <h3>Aktuelle Spieler ({{gameState.players.length}})</h3>
                   <transition-group tag="div" name="players" id="current-players">
                       <div v-for="(player, index) in gameState.players" :key="player.publicUuid" v-bind:class="getPlayerClasses(player)">
@@ -53,10 +54,12 @@
 import type { PropType } from 'vue'
 import type { LegacyApp } from './appContext'
 import { appContextMixin } from './appContext'
+import HouseRulesPanel from './HouseRulesPanel.vue'
 
 export default {
   props: { app: { type: Object as PropType<LegacyApp>, required: true } },
   name: 'PlayerSetupView',
   mixins: [appContextMixin],
+  components: { HouseRulesPanel },
 }
 </script>

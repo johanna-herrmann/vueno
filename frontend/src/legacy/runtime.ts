@@ -255,7 +255,7 @@ iqwerty.toast = (function() {
         // apply custom styles if specified
         if(arguments.length == 1) {
             var s = Object.keys(style);
-            s.forEach(function(value, index, array) {
+            s.forEach(function(value) {
                 toastStage.style[value] = style[value];
             });
         }
@@ -501,6 +501,8 @@ const methods = {
     loadGame: function (){loadGame()},
     loadGameWithoutPlayer: function (){loadGameWithoutPlayer()},
     startGame: function (){startGame()},
+    updateHouseRules: function (rules) { updateHouseRules(rules) },
+    swapHandsWith: function (index) { swapHandsWith(index) },
     getPlayerName: function(name, index){ return getPlayerName(name, index)},
     copyLink: function(){copyLink()},
     shareLink: function(){shareLink()},
@@ -809,6 +811,17 @@ function startGame(){
     localStorage.setItem('gameUuid', app.gameUuid);
     localStorage.setItem('playerUuid', app.playerUuid);
     doPostRequest('/game/start/' + app.gameUuid, {}, loadGame);
+}
+
+function updateHouseRules(houseRules){
+    doPostRequest('/game/house-rules/' + app.gameUuid, { houseRules }, loadGame);
+}
+
+function swapHandsWith(index){
+    if(!isMyTurn() || app.gameState.game.turnState !== 'SELECT_PLAYER_TO_SWAP' || app.actionLock) return;
+    app.actionLock = true;
+    const path = '/turn/swap-hands/' + app.gameUuid + '/' + app.playerUuid + '/' + index;
+    doPostRequest(path, {}, function(){ app.actionLock = false; loadGame(); });
 }
 
 function reset(){
@@ -1594,7 +1607,7 @@ function isSayUnoAllowed() {
     if(!isMyTurn() || alreadySaidUno){
         return false;
     }
-    return app.gameState.game.turnState === 'SELECT_COLOR' || app.gameState.game.turnState === 'FINAL_COUNTDOWN';
+    return app.gameState.game.turnState === 'SELECT_COLOR' || app.gameState.game.turnState === 'SELECT_PLAYER_TO_SWAP' || app.gameState.game.turnState === 'FINAL_COUNTDOWN';
 }
 
 function isMyTurn(){
@@ -1630,14 +1643,14 @@ function putCallback(data){
 }
 
 function isPlayable(card){
-    if(app.gameState.game.turnState === 'DRAW_DUTIES_OR_CUMULATIVE' && !isCumulative(app.gameState.game.topCard, card)){
-        return false;
+    if(app.gameState.game.turnState === 'DRAW_DUTIES_OR_CUMULATIVE'){
+        return isCumulative(app.gameState.game.topCard, card);
     }
     return isMatch(app.gameState.game.topCard, card);
 }
 
 function isCumulative(topCard, card){
-    return topCard.drawValue === card.drawValue;
+    return topCard.drawValue > 0 && card.drawValue > 0 && (app.gameState.game.houseRules?.mixedDrawStacking || topCard.drawValue === card.drawValue);
 }
 
 function isMatch(topCard, card){
@@ -2031,7 +2044,7 @@ const doPushActionPutCard = function(message){
             startCountdown();
         }
     }
-    if(app.currentView === 'running' && !isMyTurn()){
+    if(app.currentView === 'running' && (!isMyTurn() || app.putCardIndex < 0)){
         modificationTransitionWrapper(updateView, topCard);
     }
 };
@@ -2186,6 +2199,10 @@ const doPushActionChatMessage = function (message){
     handlePushActionChatMessage(message);
 };
 
+const doPushActionRefresh = function(){
+    updateView();
+};
+
 function showTurnToast(index){
     let name = app.gameState.players[index].name;
     name = getPlayerName(name, index);
@@ -2236,7 +2253,9 @@ const pushActions = {
     'stop-party': doPushActionStopParty,
     'request-botify-player': doPushActionRequestBotifyPlayer,
     'cancel-botify-player': doPushActionCancelBotifyPlayer,
-    'chat-message': doPushActionChatMessage
+    'chat-message': doPushActionChatMessage,
+    'house-rules-updated': doPushActionRefresh,
+    'swapped-hands': doPushActionRefresh
 };
 
 

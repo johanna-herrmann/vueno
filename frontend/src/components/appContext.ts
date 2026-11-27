@@ -16,7 +16,7 @@ const stateKeys = [
 
 const computedKeys = ['getPlayersListInOrder', 'topCardInSingleList'] as const
 const methodKeys = [
-  'createGame', 'joinGame', 'leaveGame', 'addBot', 'removeBot', 'removeBotInGame', 'reset', 'loadGame',
+  'createGame', 'joinGame', 'leaveGame', 'addBot', 'removeBot', 'removeBotInGame', 'reset', 'loadGame', 'updateHouseRules', 'swapHandsWith',
   'loadGameWithoutPlayer', 'startGame', 'getPlayerName', 'copyLink', 'shareLink', 'showInvitationQrCode',
   'getCardImage', 'put', 'putDrawn', 'draw', 'keep', 'selectColor', 'sayUno', 'isPutAllowed', 'isDrawAllowed',
   'isSayUnoAllowed', 'isMyTurn', 'isPlayersTurn', 'isPlayerInRow', 'scanQr', 'prepareSwitchDevice',
