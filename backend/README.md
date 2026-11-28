@@ -12,6 +12,8 @@ npm run dev
 
 The server listens on `0.0.0.0:9001` by default. Set `VUENO_PORT` and `VUENO_HOST` to override them. It uses the repository's `./data/games` directory for JSON game files and `./data/tokens` for token files. Override the data root with `VUENO_DATA_PATH`, or set `VUENO_GAMES_PATH` and `VUENO_TOKENS_DIRECTORY` separately.
 
+For production startup, pass the public domain without a scheme or path, for example `npm start vueno.example.com`. The backend writes absolute `https://` Open Graph image URLs to `static/index.html` and `static/invitation.html`, using each file's existing image path. The `dev` script does not require a domain.
+
 Express serves static assets from `backend/static`. Build them with `cd frontend && npm run build`; the generated directory is ignored by Git.
 
 `VUENO_FEATURE_TOKENIZED_GAME_CREATE=on` enables the same 11-character dot-separated token scheme. Token files contain bcrypt hashes, named after the first token segment.
@@ -23,5 +25,5 @@ The Java backend remains in the repository and uses the same default port, so ru
 ```sh
 npm test
 npm run build
-npm start
+npm start vueno.example.com
 ```

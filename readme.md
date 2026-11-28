@@ -18,7 +18,9 @@ This is a webapp, powered by Node.js and Vue.js, written in TypeScript.
 ## How to run
 * Pre-requisite: NodeJS
 * build it with 'npm run build'
-* then run with 'npm run start'
+* then start it with the public domain, for example `npm run start vueno.example.com`
+
+At startup, the backend adds `https://vueno.example.com` to the existing Open Graph image path and writes the absolute URL into `backend/static/index.html` and `backend/static/invitation.html`.
 
 ## Frontend development
 
